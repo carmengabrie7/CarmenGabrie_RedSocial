@@ -39,7 +39,7 @@ public class UsuarioManager {
         ruser.writeBoolean(u.isCuentaPrivada());
     }
     
-    public void crearUsuario(Usuario u) throws IOException{
+    public void createUser(Usuario u) throws IOException{
         guardarDatos(u);
         createUserFolders(u);
         createUserFiles(u);
@@ -68,6 +68,88 @@ public class UsuarioManager {
         f3.close();
         f4.close();
         f5.close();
+    }
+    
+    public boolean userExists(String username) throws IOException{
+        ruser.seek(0);
+        while (ruser.getFilePointer()< ruser.length()){
+            ruser.readUTF();
+            ruser.readChar();
+            String user = ruser.readUTF();
+            ruser.readUTF();
+            ruser.readLong(); //8
+            ruser.readInt(); //4
+            ruser.readBoolean(); //1
+            ruser.readUTF(); //
+            ruser.readBoolean();
+            
+            if (user.equals(username)){
+               return true;
+            }
+        }
+        return false;
+    }
+    
+    public Usuario login(String username, String password) throws IOException{
+        ruser.seek(0);
+        while (ruser.getFilePointer() < ruser.length()){
+            String fullName = ruser.readUTF();
+            char gender = ruser.readChar();
+            String user = ruser.readUTF();
+            String pass = ruser.readUTF();
+            long fecha = ruser.readLong();
+            int age = ruser.readInt();
+            boolean estado = ruser.readBoolean();
+            String foto = ruser.readUTF();
+            boolean privada = ruser.readBoolean();
+            
+            if (user.equals(username) && pass.equals(password) && estado){
+                return new Usuario (fullName, gender, user, pass, fecha, age, estado, foto, privada);
+            }
+        }
+        return null;
+    }
+    
+    public Usuario searchUser(String username) throws IOException{
+        ruser.seek(0);
+        while (ruser.getFilePointer()<ruser.length()){
+            String name = ruser.readUTF();
+            char gender =ruser.readChar();
+            String user = ruser.readUTF();
+            String pass = ruser.readUTF();
+            long fecha = ruser.readLong();
+            int age = ruser.readInt();
+            boolean estado =ruser.readBoolean();
+            String foto = ruser.readUTF();
+            boolean privada =ruser.readBoolean();
+            
+            if (user.equals(username) && estado){
+                return new Usuario(name, gender, user, pass, fecha, age , estado, foto, privada);
+            }
+        }
+        return null;
+    }
+    
+    public void desactivarCuenta(String username) throws IOException{
+        ruser.seek(0);
+        while (ruser.getFilePointer()<ruser.length()){
+            ruser.readUTF();
+            ruser.readChar();
+            String user = ruser.readUTF();
+            ruser.readUTF();
+            ruser.readLong();
+            ruser.readInt();
+            long pos = ruser.getFilePointer();
+            ruser.readBoolean();
+            ruser.readUTF();
+            ruser.readBoolean();
+            
+            if (user.equals(username)){
+                ruser.seek(pos);
+                ruser.writeBoolean(false);
+                return;
+            }
+        }
     }
     
      
