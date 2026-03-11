@@ -1,4 +1,4 @@
-package CarmenGabrie_RedSocial;
+package CarmenGabrie_RedSocial.GUI;
 
 import java.awt.Color;
 import javax.swing.ImageIcon;

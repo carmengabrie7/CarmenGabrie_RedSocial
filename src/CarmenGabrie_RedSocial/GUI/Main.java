@@ -1,4 +1,6 @@
-package CarmenGabrie_RedSocial;
+package CarmenGabrie_RedSocial.GUI;
+
+import CarmenGabrie_RedSocial.GUI.inicioGUI;
 
 
 public class Main {

@@ -41,4 +41,8 @@ public class PostManager {
         }
         
     }
+    
+    public void searchHashTag(){
+        
+    }
 }
