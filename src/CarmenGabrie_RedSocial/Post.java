@@ -1,7 +1,8 @@
 package CarmenGabrie_RedSocial;
 
 
-public class Post {
+
+public class Post{
     //datos que deben llevar cada publicacion
     
     private String author;

@@ -1,7 +1,8 @@
 package CarmenGabrie_RedSocial;
 
 
-public class Usuario{
+
+public class Usuario {
     private String fullName;
     private char gender;
     private String user;

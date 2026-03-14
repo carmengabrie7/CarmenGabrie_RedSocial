@@ -1,5 +1,6 @@
 package CarmenGabrie_RedSocial;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ public class PostManager {
 
     public ArrayList<Post> getUserPosts(String username) throws IOException{
         ArrayList<Post> posts = new ArrayList<>();
-        RandomAccessFile file = new RandomAccessFile(RAIZ + "/" + username + "/insta.ins","rw");
+        RandomAccessFile file = new RandomAccessFile(RAIZ + "/" + username + "/insta.ins","r");
         
         file.seek(0);
         while (file.getFilePointer() < file.length()){
@@ -37,12 +38,85 @@ public class PostManager {
             String rutaImagen = file.readUTF();
             String tipoMedia = file.readUTF();
             
-            
+            Post p = new Post(
+                      autor,
+                      fecha,
+                      content,
+                      hashtags,
+                      mentions,
+                      rutaImagen,
+                      tipoMedia
+                    );
+            posts.add(p);
         }
-        
+        file.close();
+        return posts;
     }
     
-    public void searchHashTag(){
+    public ArrayList<Post> showTimeLine(String username) throws IOException{
+        ArrayList<Post> timeline = new ArrayList<>();
+        timeline.addAll(getUserPosts(username));
         
+        RandomAccessFile following = new RandomAccessFile (RAIZ + "/" + username + "/following.ins","r");
+        following.seek(0);
+        
+        while (following.getFilePointer() < following.length()){
+            String userSeguido = following.readUTF();
+            timeline.addAll(getUserPosts(userSeguido));
+        }
+        following.close();
+        
+        return timeline;
     }
+    
+    public ArrayList<Post> searchHashTag(String hashtag) throws IOException{
+        ArrayList<Post> resultados = new ArrayList<>();
+        
+        File raiz = new File(RAIZ);
+        File[] usuarios = raiz.listFiles();
+        
+        if (usuarios==null){
+            return resultados;
+        }
+        
+        for (File usuario : usuarios){
+            
+            if (usuario.isDirectory()){
+                
+            ArrayList<Post> posts = getUserPosts(usuario.getName());
+            
+                for (Post p : posts){
+                    if (p.getHashtags().contains(hashtag)){
+                        resultados.add(p);
+                    }
+                }
+            }
+        }
+        return resultados;
+    }
+    
+    public ArrayList<Post> searchMentions (String username) throws IOException{
+        ArrayList<Post> resultados = new ArrayList<>();
+        
+        File raiz = new File(RAIZ);
+        File[] usuarios = raiz.listFiles();
+        
+        for (File usuario : usuarios){
+            if (usuario.isDirectory()){
+                
+                ArrayList<Post> posts = getUserPosts(usuario.getName());
+                
+                for (Post p : posts){
+                    if (p.getMentions().contains("@" + username));
+                    resultados.add(p);                
+            }
+        }
+        }
+        return resultados;
+    }
+    
 }
+    
+    
+    
+

@@ -1,6 +1,7 @@
 package CarmenGabrie_RedSocial;
 
 
+
 public class Inbox {
     private String emisor;
     private String receptor;
@@ -53,4 +54,10 @@ public class Inbox {
         this.tipo=tipo;
     }
     
+    public boolean isEstado(){
+        return estado;
+    }
+    public void setEstado(boolean estado){
+        this.estado=estado;
+    }
 }
