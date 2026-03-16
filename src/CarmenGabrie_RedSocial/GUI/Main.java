@@ -1,10 +1,19 @@
 package CarmenGabrie_RedSocial.GUI;
 
+import java.io.IOException;
+import javax.swing.SwingUtilities;
+
 
 
 public class Main {
     public static void main (String[]args){
-    inicioGUI inicio = new inicioGUI();
-    inicio.setVisible(true);
+    
+        SwingUtilities.invokeLater(() -> {
+            try {
+                new inicioGUI();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        });
   }
 }

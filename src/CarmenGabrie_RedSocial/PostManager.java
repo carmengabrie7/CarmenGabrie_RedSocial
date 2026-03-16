@@ -115,6 +115,27 @@ public class PostManager {
         return resultados;
     }
     
+    public ArrayList<Post> getFeedPosts(String username) throws IOException {
+        ArrayList<Post> feed = new ArrayList<>();
+        
+        feed.addAll(getUserPosts(username));
+        
+        RandomAccessFile following =new RandomAccessFile(RAIZ + "/" + username + "/following.ins","rw");
+        following.seek(0);
+        
+        while(following.getFilePointer() < following.length()){
+            String seguido = following.readUTF();
+            
+            try{
+                feed.addAll(getUserPosts(seguido));
+            }catch(Exception e){
+                
+            }
+        }
+        following.close();
+        return feed;
+    }
+    
 }
     
     
