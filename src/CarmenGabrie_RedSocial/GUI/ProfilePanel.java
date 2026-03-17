@@ -1,31 +1,35 @@
 
 package CarmenGabrie_RedSocial.GUI;
 
+import CarmenGabrie_RedSocial.FollowManager;
 import CarmenGabrie_RedSocial.Post;
 import CarmenGabrie_RedSocial.PostManager;
 import CarmenGabrie_RedSocial.Usuario;
-import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.GridLayout;
 import java.awt.Image;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 
 
 public class ProfilePanel extends JPanel {
-    private Usuario usuario;
+    private Usuario perfil;
+    private Usuario currentUser;
+    
     private JPanel gridPosts;
     
-    public ProfilePanel(Usuario usuario){
-        this.usuario=usuario;
+    public ProfilePanel(Usuario perfil, Usuario currentUser) throws IOException{
+        this.perfil=perfil;
+        this.currentUser=currentUser;
+        
         setLayout(null);
         setBackground(Color.white);
         
@@ -35,70 +39,166 @@ public class ProfilePanel extends JPanel {
         
     }
     
-    private void crearHeader(){
-        ImageIcon icon = new ImageIcon(
-            "src/CarmenGabrie_RedSocial/imagenes/" + usuario.getFotoPerfil()
-        );
+      private void crearHeader() throws IOException{
+
+    JPanel header = new JPanel();
+    header.setLayout(null);
+    header.setBackground(Color.white);
+    header.setBounds(200,20,800,180);
+    add(header);
+
+    String fotoPerfil = perfil.getFotoPerfil();
+    if(fotoPerfil == null || fotoPerfil.isEmpty()){
+        fotoPerfil = "default.jpg";
+    }
+
+    CircularImageLabel foto = new CircularImageLabel(
+        "src/CarmenGabrie_RedSocial/imagenes/" + fotoPerfil,150
+    );
+    foto.setBounds(0,10,150,150);
+    header.add(foto);
+
+    JLabel username = new JLabel(perfil.getUser());
+    username.setFont(new Font("Arial",Font.BOLD,22));
+    username.setBounds(200,20,200,30);
+    header.add(username);
+    
+    if(perfil.getUser().equals(currentUser.getUser())){
+        JButton editBtn = new JButton ("Edit Profile");
+        editBtn.setBounds(200,130,140,35);
         
-        Image img = icon.getImage().getScaledInstance(120, 120, Image.SCALE_SMOOTH);
-        
-        CircularImageLabel foto = new CircularImageLabel(
-           "src/CarmenGabrie_RedSocial.Imagenes/"+usuario.getFotoPerfil(),120
-        );
-        foto.setBounds(80,40,120,120);
-        add(foto);
-        
-        JLabel username = new JLabel(usuario.getUser());
-        username.setFont(new Font("Arial",Font.BOLD,20));
-        username.setBounds(240,60,200,30);
-        add(username);
-        
-        JLabel nombre = new JLabel(usuario.getFullName());
-        nombre.setBounds(240,90,200,30);
-        add(nombre);
-        
-        try{
-            PostManager pm = new PostManager();
-            int postCount = pm.getUserPosts(usuario.getUser()).size();
+        editBtn.addActionListener(e-> {
             
-            JLabel posts = new JLabel(postCount + " posts");
-            posts.setBounds(400,60,100,30);
-            add(posts);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-        
-        JLabel followers = new JLabel(contarFollowers() + " followers");
-        followers.setBounds(500,60,120,30);
-        add(followers);
-        
-        JLabel following = new JLabel(contarFollowing() + " following");
-        following.setBounds(650,60,120,30);
-        add(following);
-        
-        JButton crearPost = new JButton("Crear Post");
-        crearPost.setBounds(240,130,120,30);
-        add(crearPost);
-        
-        crearPost.addActionListener(e-> {
-            new CreatePostGUI(usuario);
-            gridPosts.removeAll();
-            cargarPosts();
-            gridPosts.revalidate();
-            gridPosts.repaint();
         });
         
-        JPanel linea = new JPanel();
-        linea.setBackground(new Color(220,220,220));
-        linea.setBounds(80,180,800,1);
-        add(linea);
+        header.add(editBtn);
     }
+    
+    if(!perfil.getUser().equals(currentUser.getUser())){
+        FollowManager fm = new FollowManager();
+        JButton followBtn = new JButton();
+        
+        
+        boolean following = fm.userAlreadyFollowing(
+        currentUser.getUser(),
+        perfil.getUser()
+        );
+        
+        if(following){
+            followBtn.setText("Following");
+        }else{
+            followBtn.setText("Follow");
+        }
+        
+        followBtn.setBounds(200,130,120,35);
+        followBtn.addActionListener(e -> {
+
+    try{
+
+        if(fm.userAlreadyFollowing(currentUser.getUser(),perfil.getUser())){
+
+            fm.unfollowUser(currentUser.getUser(), perfil.getUser());
+            followBtn.setText("Follow");
+
+        }
+
+        else if(perfil.isCuentaPrivada()){
+
+            fm.sendFollowRequest(currentUser.getUser(), perfil.getUser());
+            followBtn.setText("Requested");
+            followBtn.setEnabled(false);
+
+        }
+
+        else{
+
+            fm.followUser(currentUser.getUser(), perfil.getUser());
+            fm.followers(currentUser.getUser(), perfil.getUser());
+
+            followBtn.setText("Following");
+
+        }
+        
+        refreshProfile();
+
+    }catch(Exception ex){
+        ex.printStackTrace();
+    }
+});
+        
+         if (following || !perfil.isCuentaPrivada()){
+         JButton messageBtn = new JButton("Message");
+         messageBtn.setBounds(330,130,120,35);
+         
+         messageBtn.addActionListener(e->{
+             new MessagesPanel(currentUser);
+         });
+         
+         header.add(messageBtn);
+    }
+        
+        header.add(followBtn);
+        
+        if(perfil.isCuentaPrivada() && !following){
+            JLabel privado = new JLabel ("Este perfil es privado");
+            privado.setBounds(200,165,250,20);
+            
+            header.add(privado);
+        }
+    }
+    
+
+    JLabel nombre = new JLabel(perfil.getFullName());
+    nombre.setBounds(200,50,300,25);
+    header.add(nombre);
+
+    int postCount = 0;
+
+    try{
+        PostManager pm = new PostManager();
+        postCount = pm.getUserPosts(perfil.getUser()).size();
+    }catch(Exception e){}
+
+    JLabel posts = new JLabel(postCount + " posts");
+    posts.setFont(new Font("Arial",Font.BOLD,14));
+    posts.setBounds(200,90,100,30);
+    header.add(posts);
+
+    JLabel followers = new JLabel(contarFollowers() + " followers");
+    followers.setFont(new Font("Arial",Font.BOLD,14));
+    followers.setBounds(320,90,150,30);
+    
+    followers.addMouseListener(new java.awt.event.MouseAdapter() {
+          
+        public void mouseClicked(java.awt.event.MouseEvent e){
+            new FollowListGUI(perfil.getUser(),"followers");
+        }
+    });
+    
+    header.add(followers);
+
+    JLabel following = new JLabel(contarFollowing() + " following");
+    following.setFont(new Font("Arial",Font.BOLD,14));
+    following.setBounds(470,90,150,30);
+    
+    following.addMouseListener(new java.awt.event.MouseAdapter() {
+        
+        public void mouseClicked(java.awt.event.MouseEvent e){
+            new FollowListGUI(perfil.getUser(),"following");
+        }
+    });
+    header.add(following);
+
+    JSeparator linea = new JSeparator();
+    linea.setBounds(0,170,800,1);
+    header.add(linea);
+}
     
     private int contarFollowers(){
         int count =0;
         try{
             RandomAccessFile file = new RandomAccessFile(
-              "INSTA_RAIZ/"+usuario.getUser()+"/followers.ins","r"
+              "INSTA_RAIZ/"+perfil.getUser()+"/followers.ins","r"
             );
             
             while(file.getFilePointer() < file.length()){
@@ -117,7 +217,7 @@ public class ProfilePanel extends JPanel {
         
         try{
             RandomAccessFile file = new RandomAccessFile(
-                    "INSTA_RAIZ/"+usuario.getUser()+"/following.ins","r"
+                    "INSTA_RAIZ/"+perfil.getUser()+"/following.ins","r"
             );
             
             while(file.getFilePointer() < file.length()){
@@ -131,11 +231,11 @@ public class ProfilePanel extends JPanel {
     
     private void crearGridPosts(){
         gridPosts = new JPanel();
-        gridPosts.setLayout(new GridLayout(0,3,5,5));
+        gridPosts.setLayout(new FlowLayout(FlowLayout.CENTER,20,20)); 
         gridPosts.setBackground(Color.white);
         
         JScrollPane scroll = new JScrollPane(gridPosts);
-        scroll.setBounds(80,200,800,500);
+        scroll.setBounds(200,220,800,450);
         scroll.setBorder(null);
         add(scroll);   
     }
@@ -145,8 +245,20 @@ public class ProfilePanel extends JPanel {
     gridPosts.removeAll();
 
     try{
+        
+        FollowManager fm = new FollowManager();
+        if(perfil.isCuentaPrivada() && 
+           !perfil.getUser().equals(currentUser.getUser()) && 
+           !fm.userAlreadyFollowing(currentUser.getUser(), perfil.getUser())){
+            
+            JLabel privado = new JLabel("Cuenta privada");
+            gridPosts.add(privado);
+            return;
+        }
+        
         PostManager pm = new PostManager();
-        ArrayList<Post> posts = pm.getUserPosts(usuario.getUser());
+        ArrayList<Post> posts = pm.getUserPosts(perfil.getUser());
+        posts.sort((a,b) -> Long.compare(b.getDate(), a.getDate()));
 
         if(posts.isEmpty()){
 
@@ -160,17 +272,16 @@ public class ProfilePanel extends JPanel {
                 if(p.getRutaImagen()!=null){
 
                     ImageIcon img = new ImageIcon(p.getRutaImagen());
-                    Image scaled = img.getImage().getScaledInstance(250,250,Image.SCALE_SMOOTH);
+                    Image scaled = img.getImage().getScaledInstance(240,240,Image.SCALE_SMOOTH);
 
                     JLabel postImg = new JLabel(new ImageIcon(scaled));
 
-                    // CLICK PARA ABRIR POST
                     postImg.addMouseListener(new java.awt.event.MouseAdapter(){
 
                         @Override
                         public void mouseClicked(java.awt.event.MouseEvent e){
 
-                            new PostViewerGUI(p);
+                            new PostViewerGUI(p,currentUser.getUser());
 
                         }
                     });
@@ -187,4 +298,14 @@ public class ProfilePanel extends JPanel {
         e.printStackTrace();
     }
 }
+       public void refreshProfile() throws IOException{
+        removeAll();
+        
+        crearHeader();
+        crearGridPosts();
+        cargarPosts();
+        
+        revalidate();
+        repaint();
+    }
 }

@@ -111,4 +111,38 @@ public class InboxManager {
         }
         file.close();
     }
+    
+    public ArrayList<String> getChats(String username) throws IOException{
+        ArrayList<String> chats = new ArrayList<>();
+        
+        RandomAccessFile file = new RandomAccessFile(
+             RAIZ + "/" + username + "/inbox.ins","r"
+        );
+        
+        file.seek(0);
+        
+        while(file.getFilePointer() < file.length()){
+
+        String emisor = file.readUTF();
+        String receptor = file.readUTF();
+        file.readLong();
+        file.readUTF();
+        file.readUTF();
+        file.readBoolean();
+
+        String otro;
+
+        if(emisor.equals(username))
+            otro = receptor;
+        else
+            otro = emisor;
+
+        if(!chats.contains(otro))
+            chats.add(otro);
+    }
+
+    file.close();
+
+    return chats;
+    }
 }

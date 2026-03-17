@@ -62,12 +62,14 @@ public class UsuarioManager {
         RandomAccessFile f3 = new RandomAccessFile(dir + "/insta.ins","rw");
         RandomAccessFile f4 = new RandomAccessFile(dir + "/inbox.ins","rw");
         RandomAccessFile f5 = new RandomAccessFile(dir + "/stickers.ins","rw");
+        RandomAccessFile f6 = new RandomAccessFile(dir + "/follow_requests.ins","rw");
         
         f1.close();
         f2.close();
         f3.close();
         f4.close();
         f5.close();
+        f6.close();
     }
     
     public boolean userExists(String username) throws IOException{

@@ -19,7 +19,7 @@ public class FollowManager{
     }
     
     public void followers (String user1, String user2) throws IOException{
-        RandomAccessFile followers = new RandomAccessFile(RAIZ + "/" + user2 + "/followers.in","rw");
+        RandomAccessFile followers = new RandomAccessFile(RAIZ + "/" + user2 + "/followers.ins","rw");
         followers.seek(followers.length());
         followers.writeUTF(user1);
         followers.close();
@@ -84,4 +84,43 @@ public class FollowManager{
         nuevo2.renameTo(new File(RAIZ + "/" + user2 + "/followers.ins"));
     }
     
+    public void sendFollowRequest(String fromUser,String toUser) throws IOException{
+
+    File file = new File(RAIZ + "/" + toUser + "/follow_requests.ins");
+
+    if(!file.exists()){
+        file.createNewFile();
+    }
+
+    RandomAccessFile req = new RandomAccessFile(file,"rw");
+
+    req.seek(req.length());
+    req.writeUTF(fromUser);
+
+    req.close();
+}
+    
+    public boolean requestAlreadySent(String fromUser,String toUser) throws IOException{
+
+    File file = new File(RAIZ + "/" + toUser + "/follow_requests.ins");
+
+    if(!file.exists()){
+        return false;
+    }
+
+    RandomAccessFile req = new RandomAccessFile(file,"r");
+
+    while(req.getFilePointer()<req.length()){
+
+        String user = req.readUTF();
+
+        if(user.equals(fromUser)){
+            req.close();
+            return true;
+        }
+    }
+
+    req.close();
+    return false;
+}
 }

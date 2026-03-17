@@ -11,6 +11,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 
 
@@ -18,8 +19,9 @@ public class feedGUI extends JFrame{
     private Usuario usuario;
     
     private JPanel panelPrincipal;
-    private JPanel rightPanel;
     private CardLayout cardLayout;
+    private HomePanel homePanel;
+    private ProfilePanel profilePanel;
     
     public feedGUI (Usuario usuario) throws IOException{
         this.usuario = usuario;
@@ -30,24 +32,19 @@ public class feedGUI extends JFrame{
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(null);
 
-        JPanel linea1 = new JPanel();
-        linea1.setBackground(Color.LIGHT_GRAY);
-        linea1.setBounds(200,0,1,768);
-        add(linea1);
+        JPanel lineaSidebar = new JPanel();
+        lineaSidebar.setBackground(Color.LIGHT_GRAY);
+        lineaSidebar.setBounds(200,0,1,768);
+        add(lineaSidebar);
         
-        JPanel linea2 = new JPanel();
-        linea2.setBackground(Color.LIGHT_GRAY);
-        linea2.setBounds(1000,0,1,768);
-        add(linea2);
         
         crearSidebar();
         crearFeed();
-        crearRightPanel();
     
         setVisible(true);
     }
     
-    private void crearSidebar(){
+    private void crearSidebar() throws IOException{
      
         JPanel sidebar = new JPanel();
         sidebar.setLayout(null);
@@ -86,61 +83,96 @@ public class feedGUI extends JFrame{
                 "src/CarmenGabrie_RedSocial/iconos/search.png",
                 290
                );
+       
+       JButton createPost = crearBoton(
+               "Create Post",
+               "src/CarmenGabrie_RedSocial/iconos/create.png",
+               340
+       );
+       
+       JButton notifications  = crearBoton(
+               "Notifications",
+               "src/CarmenGabrie_RedSocial/iconos/notifications.png",
+               390
+       );
+       
+       JButton settings = crearBoton(
+               "Settings",
+               "src/CarmenGabrie_RedSocial/iconos/settings.png",
+               440
+       );
         
         sidebar.add(home);
         sidebar.add(profile);
         sidebar.add(messages);
         sidebar.add(search);
+        sidebar.add(createPost);
+        sidebar.add(notifications);
+        sidebar.add(settings);
         
         home.addActionListener(e -> { 
-                cardLayout.show(panelPrincipal, "home");
-                rightPanel.setVisible(true);       
+                homePanel.refreshFeed();
+                cardLayout.show(panelPrincipal, "home");      
             });
+        
         profile.addActionListener(e -> { 
+            try {
+                profilePanel.refreshProfile();
+            } catch (IOException ex) {
+                System.getLogger(feedGUI.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            }
             cardLayout.show(panelPrincipal, "profile");
-            rightPanel.setVisible(false);
                 });
+        
         messages.addActionListener(e -> {
             cardLayout.show(panelPrincipal, "messages");
-            rightPanel.setVisible(false);
                 });
         search.addActionListener(e -> {
             cardLayout.show(panelPrincipal, "search");
-            rightPanel.setVisible(false);
                 });
-        
+        createPost.addActionListener(e -> {
+            new CreatePostGUI(usuario);
+                });
+
+        notifications.addActionListener(e -> {
+           cardLayout.show(panelPrincipal,"notifications");
+                });
+
+        settings.addActionListener(e -> {
+           cardLayout.show(panelPrincipal,"settings");
+                });
     }
     
     private void crearFeed() throws IOException{
         cardLayout = new CardLayout();
         panelPrincipal = new JPanel(cardLayout);
-        panelPrincipal.setBounds(200, 0, 800, 768);
-        
+        panelPrincipal.setBounds(200, 0, 1166, 768);
         add(panelPrincipal);
         
-        panelPrincipal.add(new HomePanel(usuario),"home");
-        panelPrincipal.add(new ProfilePanel(usuario),"profile");
+        homePanel = new HomePanel(usuario);
+        panelPrincipal.add(homePanel,"home");
+        
+        profilePanel = new ProfilePanel(usuario,usuario);
+        panelPrincipal.add(profilePanel,"profile");
+        
         panelPrincipal.add(new MessagesPanel(usuario),"messages");
-        panelPrincipal.add(new SearchPanel(usuario),"search");
+        panelPrincipal.add(new SearchPanel(usuario,this),"search");
+        
+        panelPrincipal.add(new JPanel(),"notifications");
+        panelPrincipal.add(new JPanel(),"settings");
     }
     
-    private void crearRightPanel(){
-        rightPanel = new JPanel();
-        rightPanel.setLayout(null);
-        rightPanel.setBackground(Color.white);
-        rightPanel.setBounds(1000,0,366,768);
-        add(rightPanel);
-        
-        JLabel nombre = new JLabel (usuario.getFullName());
-        nombre.setBounds(40,40,200,30);
-        
-        JLabel username = new JLabel("@" + usuario.getUser());
-        username.setBounds(40,70,200,30);
-        
-        rightPanel.add(nombre);
-        rightPanel.add(username);
-        
+    public void abrirPerfil(Usuario perfil){
+        try{
+            profilePanel= new ProfilePanel(perfil,usuario);
+            panelPrincipal.add(profilePanel,"perfilTemporal");
+            cardLayout.show(panelPrincipal, "perfilTemporal");
+            
+        }catch(Exception e){
+            e.printStackTrace();
+        }
     }
+    
     
     private JButton crearBoton(String texto,String iconPath, int y){
         ImageIcon icon = new ImageIcon (iconPath);

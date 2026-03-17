@@ -156,7 +156,7 @@ public class registroGUI extends JFrame{
                 fecha,
                 edad,
                 true,
-                "src/CarmenGabrie_RedSocial.Imagenes/default.jpg",
+                "default.jpg",
                 privada
         );
         

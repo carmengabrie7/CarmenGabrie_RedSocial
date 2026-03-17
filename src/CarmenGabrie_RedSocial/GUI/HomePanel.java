@@ -3,7 +3,9 @@ package CarmenGabrie_RedSocial.GUI;
 import CarmenGabrie_RedSocial.Post;
 import CarmenGabrie_RedSocial.PostManager;
 import CarmenGabrie_RedSocial.Usuario;
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.Box;
@@ -19,17 +21,22 @@ public class HomePanel extends JPanel {
     public HomePanel(Usuario usuario) throws IOException{
         this.usuario=usuario;
         
-        setLayout(null);
+        setLayout(new BorderLayout());
         setBackground(Color.white);
         
         timeline = new JPanel();
-        timeline.setLayout(new BoxLayout(timeline, BoxLayout.Y_AXIS));
+        timeline.setLayout(new BoxLayout(timeline,BoxLayout.Y_AXIS));
         timeline.setBackground(Color.white);
         
-        JScrollPane scroll = new JScrollPane(timeline);
-        scroll.setBounds(250,20,500,650);
+        JPanel centerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        centerPanel.setBackground(Color.white);
+        centerPanel.add(timeline);
+        
+        JScrollPane scroll = new JScrollPane(centerPanel);
         scroll.setBorder(null);
-        add(scroll);
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        
+        add(scroll, BorderLayout.CENTER);
         
         cargarPosts();
 
@@ -38,18 +45,29 @@ public class HomePanel extends JPanel {
     private void cargarPosts(){
         try{
             PostManager pm = new PostManager();
-            
             ArrayList<Post> posts = pm.getFeedPosts(usuario.getUser());
             
             posts.sort((a,b) -> Long.compare(b.getDate(), a.getDate()));
             
             for(Post p: posts){
-                PostCardPanel card = new PostCardPanel(p);
+                PostCardPanel card = new PostCardPanel(p,usuario.getUser());
+                
                 timeline.add(card);
-                timeline.add(Box.createVerticalStrut(15));
+                timeline.add(Box.createVerticalStrut(40));
             }
+            timeline.revalidate();
+            timeline.repaint();
+            
         }catch(Exception e){
             e.printStackTrace();
         }
+    }
+    
+    public void refreshFeed(){
+        timeline.removeAll();
+        cargarPosts();
+        
+        timeline.revalidate();
+        timeline.repaint();
     }
 }

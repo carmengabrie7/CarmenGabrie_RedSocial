@@ -4,10 +4,13 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/C:/Users/DELL/OneDrive/Documents/NetBeansProjects/CarmenGabrie_RedSocial/src/CarmenGabrie_RedSocial/GUI/Main.java</file>
-            <file>file:/C:/Users/DELL/OneDrive/Documents/NetBeansProjects/CarmenGabrie_RedSocial/src/CarmenGabrie_RedSocial/GUI/SearchPanel.java</file>
             <file>file:/C:/Users/DELL/OneDrive/Documents/NetBeansProjects/CarmenGabrie_RedSocial/src/CarmenGabrie_RedSocial/GUI/ProfilePanel.java</file>
-            <file>file:/C:/Users/DELL/OneDrive/Documents/NetBeansProjects/CarmenGabrie_RedSocial/src/CarmenGabrie_RedSocial/GUI/OtherProfileGUI.java</file>
-            <file>file:/C:/Users/DELL/OneDrive/Documents/NetBeansProjects/CarmenGabrie_RedSocial/src/CarmenGabrie_RedSocial/FollowManager.java</file>
+            <file>file:/C:/Users/DELL/OneDrive/Documents/NetBeansProjects/CarmenGabrie_RedSocial/src/CarmenGabrie_RedSocial/GUI/feedGUI.java</file>
+            <file>file:/C:/Users/DELL/OneDrive/Documents/NetBeansProjects/CarmenGabrie_RedSocial/src/CarmenGabrie_RedSocial/GUI/NotificationsPanel.java</file>
+            <file>file:/C:/Users/DELL/OneDrive/Documents/NetBeansProjects/CarmenGabrie_RedSocial/src/CarmenGabrie_RedSocial/GUI/MessagesPanel.java</file>
+            <file>file:/C:/Users/DELL/OneDrive/Documents/NetBeansProjects/CarmenGabrie_RedSocial/src/CarmenGabrie_RedSocial/InboxManager.java</file>
+            <file>file:/C:/Users/DELL/OneDrive/Documents/NetBeansProjects/CarmenGabrie_RedSocial/src/CarmenGabrie_RedSocial/ChatServer.java</file>
+            <file>file:/C:/Users/DELL/OneDrive/Documents/NetBeansProjects/CarmenGabrie_RedSocial/src/CarmenGabrie_RedSocial/GUI/PostViewerGUI.java</file>
         </group>
     </open-files>
 </project-private>

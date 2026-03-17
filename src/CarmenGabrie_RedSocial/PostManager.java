@@ -107,8 +107,8 @@ public class PostManager {
                 ArrayList<Post> posts = getUserPosts(usuario.getName());
                 
                 for (Post p : posts){
-                    if (p.getMentions().contains("@" + username));
-                    resultados.add(p);                
+                    if (p.getMentions().contains("@" + username)){
+                    resultados.add(p);  }              
             }
         }
         }
@@ -134,6 +134,127 @@ public class PostManager {
         }
         following.close();
         return feed;
+    }
+    
+    public void likePost(Post post, String user){
+        try{
+            RandomAccessFile file = new RandomAccessFile(
+                RAIZ + "/" + post.getAuthor() + "/likes.ins","rw"
+            );
+            
+            while(file.getFilePointer() < file.length()){
+                long fecha = file.readLong();
+                String u = file.readUTF();
+                
+                if(fecha == post.getDate() && u.equals(user)){
+                    file.close();
+                    return;
+                }
+            }
+            
+            file.seek(file.length());
+            file.writeLong(post.getDate());
+            file.writeUTF(user);
+            
+            file.close();
+            
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+    
+    public int getLikes(Post post){
+        int count =0;
+        
+        try{
+            RandomAccessFile file = new RandomAccessFile(
+               RAIZ + "/" + post.getAuthor() + "/likes.ins", "r"
+            );
+            
+            while(file.getFilePointer() < file.length()){
+                long fecha = file.readLong();
+                String user = file.readUTF();
+                
+                if (fecha == post.getDate()){
+                    count++;
+                }
+            }
+            
+            file.close();
+        }catch(Exception e){}
+        
+        return count;
+    }
+    
+    public void addComment (Post post, String user, String comment){
+        try{
+            RandomAccessFile file = new RandomAccessFile(
+               RAIZ + "/" + post.getAuthor() + "/comments.ins","rw"
+            );
+            
+            file.seek(file.length());
+            file.writeLong(post.getDate());
+            file.writeUTF(user);
+            file.writeUTF(comment);
+            
+            file.close();
+            
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+    
+    public ArrayList<String> getComments(Post post){
+        ArrayList<String> comments = new ArrayList<>();
+        
+        try{
+            RandomAccessFile file = new RandomAccessFile(
+               RAIZ + "/" + post.getAuthor() + "/comments.ins","r"
+            );
+            
+            while(file.getFilePointer() < file.length()){
+                long fecha = file.readLong();
+                String user = file.readUTF();
+                String comment = file.readUTF();
+                
+                if (fecha==post.getDate()){
+                    comments.add(user + ": "+comment);
+                }
+            }
+            
+            file.close();
+            
+        }catch(Exception e){
+        }
+        
+        return comments;
+    }
+    
+    public void deletePost(Post post){
+        try{
+            ArrayList<Post> posts = getUserPosts(post.getAuthor());
+            
+            RandomAccessFile file = new RandomAccessFile(
+               RAIZ + "/" + post.getAuthor() + "/insta.ins","rw"
+            );
+            
+            file.setLength(0);
+            for(Post p : posts){
+                if(p.getDate() != post.getDate()){
+                    
+                    file.writeUTF(p.getAuthor());
+                    file.writeLong(p.getDate());
+                    file.writeUTF(p.getContent());
+                    file.writeUTF(p.getHashtags());
+                    file.writeUTF(p.getMentions());
+                    file.writeUTF(p.getRutaImagen());
+                    file.writeUTF(p.getTipoMedia());
+                }
+            }
+            file.close();
+        }catch(Exception e ){
+            e.printStackTrace();
+        }
     }
     
 }
