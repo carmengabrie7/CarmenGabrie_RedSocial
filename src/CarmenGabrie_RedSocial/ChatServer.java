@@ -22,6 +22,27 @@ public class ChatServer {
         }
     }
 
+    public void startServer() {
+
+    try {
+
+        ServerSocket server = new ServerSocket(5000);
+
+        System.out.println("ChatServer iniciado en puerto 5000");
+
+        while (true) {
+
+            Socket socket = server.accept();
+
+            new ClientHandler(socket).start();
+
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+
     static class ClientHandler extends Thread{
 
         private Socket socket;
@@ -67,5 +88,6 @@ public class ChatServer {
             }catch(Exception e){
             }
         }
+        
     }
 }

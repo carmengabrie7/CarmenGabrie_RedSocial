@@ -1,6 +1,7 @@
 package CarmenGabrie_RedSocial.GUI;
 
 import CarmenGabrie_RedSocial.ChatClient;
+import CarmenGabrie_RedSocial.FollowManager;
 import CarmenGabrie_RedSocial.Inbox;
 import CarmenGabrie_RedSocial.InboxManager;
 import CarmenGabrie_RedSocial.Usuario;
@@ -10,6 +11,7 @@ import javax.swing.*;
 public class MessagesPanel extends JPanel {
 
     private Usuario currentUser;
+    private ChatClient client;
 
     private JPanel chatList;
     private JPanel mensajesPanel;
@@ -19,21 +21,36 @@ public class MessagesPanel extends JPanel {
 
     public MessagesPanel(Usuario user){
 
-        this.currentUser = user;
+    this.currentUser = user;
 
-        setLayout(new BorderLayout());
-        setBackground(Color.white);
+   try{
+    client = new ChatClient(currentUser.getUser());
+    }catch(Exception e){
+    client = null;
+    System.out.println("Chat en modo offline");
+}
 
-        crearPanelIzquierdo();
-        crearPanelDerecho();
-        escucharMensajes();
-    }
+    setLayout(new BorderLayout());
+    setBackground(Color.white);
+
+    crearPanelIzquierdo();
+    crearPanelDerecho();
+    escucharMensajes();
+}
+    
+    public MessagesPanel(Usuario user, String chatUser){
+
+    this(user); // llama al constructor anterior
+
+    abrirChat(chatUser);
+
+}
 
     // PANEL IZQUIERDO (lista de chats)
     private void crearPanelIzquierdo(){
 
         JPanel left = new JPanel(new BorderLayout());
-        left.setPreferredSize(new Dimension(250,600));
+        left.setPreferredSize(new Dimension(230,600));
         left.setBackground(Color.white);
 
         JPanel top = new JPanel();
@@ -41,22 +58,22 @@ public class MessagesPanel extends JPanel {
         top.setBackground(Color.white);
 
         JLabel inbox = new JLabel("Inbox");
-inbox.setFont(new Font("Arial",Font.BOLD,22));
-inbox.setAlignmentX(Component.LEFT_ALIGNMENT);
+        inbox.setFont(new Font("Arial",Font.BOLD,22));
+        inbox.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-JTextField search = new JTextField();
-search.setMaximumSize(new Dimension(220,30));
-search.setBorder(BorderFactory.createTitledBorder("Search"));
+        JTextField search = new JTextField();
+        search.setMaximumSize(new Dimension(220,30));
+        search.setBorder(BorderFactory.createTitledBorder("Search"));
+        search.addActionListener(e -> buscarUsuarios(search.getText()));
 
-top.add(inbox);
-top.add(Box.createVerticalStrut(10));
-top.add(search);
+        top.add(inbox);
+        top.add(Box.createVerticalStrut(10));
+        top.add(search);
 
-left.add(top,BorderLayout.NORTH);
-
-        left.add(search,BorderLayout.NORTH);
+        left.add(top,BorderLayout.NORTH);
 
         chatList = new JPanel();
+        chatList.setBorder(BorderFactory.createEmptyBorder(10,0,10,0));
         chatList.setLayout(new BoxLayout(chatList,BoxLayout.Y_AXIS));
         chatList.setBackground(Color.white);
 
@@ -70,106 +87,274 @@ left.add(top,BorderLayout.NORTH);
         cargarConversaciones();
     }
 
-    // PANEL DERECHO (chat)
     private void crearPanelDerecho(){
 
-        JPanel right = new JPanel(new BorderLayout());
-        right.setBackground(Color.white);
+    JPanel right = new JPanel(new BorderLayout());
+    right.setBackground(Color.white);
 
-        mensajesPanel = new JPanel();
-        mensajesPanel.setLayout(new BoxLayout(mensajesPanel,BoxLayout.Y_AXIS));
-        mensajesPanel.setBackground(Color.white);
-        
-        JLabel empty = new JLabel("Selecciona un chat para empezar a mensajear");
-empty.setFont(new Font("Arial",Font.PLAIN,16));
-empty.setHorizontalAlignment(SwingConstants.CENTER);
+    // PANEL DE MENSAJES
+    mensajesPanel = new JPanel();
+    mensajesPanel.setLayout(new BoxLayout(mensajesPanel, BoxLayout.Y_AXIS));
+    mensajesPanel.setBackground(Color.white);
 
-mensajesPanel.setLayout(new BorderLayout());
-mensajesPanel.add(empty,BorderLayout.CENTER);
+    JScrollPane mensajesScroll = new JScrollPane(mensajesPanel);
+    mensajesScroll.setBorder(null);
 
-        JScrollPane mensajesScroll = new JScrollPane(mensajesPanel);
+    right.add(mensajesScroll, BorderLayout.CENTER);
 
-        right.add(mensajesScroll,BorderLayout.CENTER);
+    // PANEL DE ESCRIBIR
+    JPanel bottom = new JPanel(new BorderLayout(10,0));
+bottom.setBorder(BorderFactory.createEmptyBorder(10,20,10,20));
+bottom.setBackground(Color.white);
 
-        JPanel bottom = new JPanel(new BorderLayout());
+    mensajeField = new JTextField();
+mensajeField.setFont(new Font("Arial",Font.PLAIN,14));
 
-        mensajeField = new JTextField();
-        JButton send = new JButton("Send");
+mensajeField.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(new Color(220,220,220),1,true),
+        BorderFactory.createEmptyBorder(8,12,8,12)
+));
 
-        bottom.add(mensajeField,BorderLayout.CENTER);
-        bottom.add(send,BorderLayout.EAST);
+    JButton send = new JButton("Send");
+send.setFocusPainted(false);
+send.setBackground(new Color(0,149,246));
+send.setForeground(Color.white);
+send.setBorder(BorderFactory.createEmptyBorder(6,15,6,15));
 
-        send.addActionListener(e -> enviarMensaje());
+    bottom.add(mensajeField, BorderLayout.CENTER);
+    bottom.add(send, BorderLayout.EAST);
 
-        right.add(bottom,BorderLayout.SOUTH);
+    mensajeField.addActionListener(e -> enviarMensaje());
+    send.addActionListener(e -> enviarMensaje());
 
-        add(right,BorderLayout.CENTER);
-    }
+    right.add(bottom, BorderLayout.SOUTH);
 
-    // CARGAR LISTA DE CHATS
-    private void cargarConversaciones(){
+    add(right, BorderLayout.CENTER);
+}
 
-        chatList.removeAll();
+   private void cargarConversaciones(){
 
-        try{
+    chatList.removeAll();
 
-            InboxManager im = new InboxManager();
+    try{
 
-            for(String usuario : im.getChats(currentUser.getUser())){
+        InboxManager im = new InboxManager();
 
-                JButton chatBtn = new JButton("@"+usuario);
-
-                chatBtn.setHorizontalAlignment(SwingConstants.LEFT);
-
-                chatBtn.addActionListener(e -> abrirChat(usuario));
-
-                chatList.add(chatBtn);
+        java.util.List<String> chats = im.getChats(currentUser.getUser());
+        chats.sort((a,b)->{
+            try{
+                InboxManager im2 = new InboxManager();
+                
+                long lastA = im2.getLastMessageTime(currentUser.getUser(),a);
+                long lastB = im2.getLastMessageTime(currentUser.getUser(),b);
+                
+                return Long.compare(lastB, lastA);
+            }catch(Exception e){
+                return 0;
             }
+            
+        });
 
-        }catch(Exception e){
-            e.printStackTrace();
+        if(currentChatUser != null && !chats.contains(currentChatUser)){
+            chats.add(currentChatUser);
         }
 
-        chatList.revalidate();
-        chatList.repaint();
+        for(String usuario : chats){
+
+            JPanel item = new JPanel(new BorderLayout());
+            item.setMaximumSize(new Dimension(250,70));
+            item.setBackground(Color.white);
+            item.setBorder(BorderFactory.createEmptyBorder(10,15,10,15));
+
+            int unread = im.countUnreadMessages(currentUser.getUser(),usuario);
+            
+            JLabel name = new JLabel("@"+usuario);
+            name.setFont(new Font("Arial",Font.BOLD,14));
+
+            item.add(name,BorderLayout.WEST);
+
+if(unread > 0){
+
+    JLabel badge = new JLabel(String.valueOf(unread));
+    badge.setOpaque(true);
+    badge.setBackground(new Color(0,149,246));
+    badge.setForeground(Color.white);
+    badge.setBorder(BorderFactory.createEmptyBorder(2,6,2,6));
+
+    item.add(badge,BorderLayout.EAST);
+}
+
+            item.addMouseListener(new java.awt.event.MouseAdapter(){
+
+    public void mouseClicked(java.awt.event.MouseEvent e){
+        abrirChat(usuario);
     }
 
-    // ABRIR CHAT
-    private void abrirChat(String user){
+    public void mouseEntered(java.awt.event.MouseEvent e){
+        item.setBackground(new Color(245,245,245));
+    }
 
-        currentChatUser = user;
+    public void mouseExited(java.awt.event.MouseEvent e){
+        item.setBackground(Color.white);
+    }
 
-        mensajesPanel.removeAll();
-        mensajesPanel.setLayout(new BoxLayout(mensajesPanel,BoxLayout.Y_AXIS));
+    public void mousePressed(java.awt.event.MouseEvent e){
 
-        try{
+        if(SwingUtilities.isRightMouseButton(e)){
 
-            InboxManager im = new InboxManager();
+            int option = JOptionPane.showConfirmDialog(
+                    null,
+                    "Eliminar conversación con " + usuario + "?",
+                    "Confirmar",
+                    JOptionPane.YES_NO_OPTION
+            );
 
-            for(Inbox m : im.getConversation(currentUser.getUser(),user)){
+            if(option == JOptionPane.YES_OPTION){
 
-                JLabel msg = new JLabel(m.getEmisor()+": "+m.getContenido());
-                msg.setFont(new Font("Arial",Font.PLAIN,14));
+                try{
+                    InboxManager im = new InboxManager();
+                    im.deleteConversation(currentUser.getUser(), usuario);
+                    cargarConversaciones();
+                }catch(Exception ex){
+                    ex.printStackTrace();
+                }
 
-                mensajesPanel.add(msg);
             }
+        }
+    }
+});
 
-        }catch(Exception e){
-            e.printStackTrace();
+            chatList.add(item);
         }
 
-        mensajesPanel.revalidate();
-        mensajesPanel.repaint();
+    }catch(Exception e){
+        e.printStackTrace();
     }
 
-    // ENVIAR MENSAJE
+    chatList.revalidate();
+    chatList.repaint();
+}
+   
+   private void buscarUsuarios(String texto){
+       
+       if(texto.trim().isEmpty()){
+    cargarConversaciones();
+    return;
+}
+
+    chatList.removeAll();
+
+    try{
+
+        FollowManager fm = new FollowManager();
+
+        java.util.List<String> following = fm.getFollowing(currentUser.getUser());
+
+        for(String usuario : following){
+
+            if(usuario.toLowerCase().contains(texto.toLowerCase())){
+
+                JPanel item = new JPanel(new BorderLayout());
+                item.setMaximumSize(new Dimension(250,60));
+                item.setBackground(Color.white);
+                item.setBorder(BorderFactory.createEmptyBorder(8,15,8,15));
+
+                JLabel name = new JLabel("@"+usuario);
+                name.setFont(new Font("Arial",Font.BOLD,14));
+
+                item.add(name,BorderLayout.CENTER);
+
+                item.addMouseListener(new java.awt.event.MouseAdapter(){
+
+                    public void mouseClicked(java.awt.event.MouseEvent e){
+                        abrirChat(usuario);
+                    }
+
+                });
+
+                chatList.add(item);
+            }
+        }
+
+    }catch(Exception e){
+        e.printStackTrace();
+    }
+
+    chatList.revalidate();
+    chatList.repaint();
+}
+
+   public void abrirChat(String user){
+
+    currentChatUser = user;
+
+    cargarConversaciones();
+
+    mensajesPanel.removeAll();
+    mensajesPanel.setLayout(new BoxLayout(mensajesPanel,BoxLayout.Y_AXIS));
+
+    try{
+
+        InboxManager im = new InboxManager();
+
+        // marcar mensajes como leídos
+        im.markAsRead(currentUser.getUser(), user);
+
+        for(Inbox m : im.getConversation(currentUser.getUser(),user)){
+
+            boolean esMio = m.getEmisor().equals(currentUser.getUser());
+
+JPanel fila = new JPanel(new BorderLayout());
+fila.setBorder(BorderFactory.createEmptyBorder(3,20,3,20));
+fila.setOpaque(false);
+
+JPanel bubble = new JPanel(new FlowLayout(
+        esMio ? FlowLayout.RIGHT : FlowLayout.LEFT));
+
+bubble.setOpaque(false);
+
+JLabel msg = new JLabel(m.getContenido());
+msg.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(new Color(230,230,230),1,true),
+        BorderFactory.createEmptyBorder(8,12,8,12)
+));
+msg.setOpaque(true);
+
+if(esMio){
+    msg.setBackground(new Color(220,248,198));
+}else{
+    msg.setBackground(new Color(240,240,240));
+}
+
+bubble.add(msg);
+fila.add(bubble, BorderLayout.CENTER);
+
+mensajesPanel.add(fila);
+        }
+
+    }catch(Exception e){
+        e.printStackTrace();
+    }
+
+    mensajesPanel.revalidate();
+    mensajesPanel.repaint();
+
+    // scroll automático al último mensaje
+    SwingUtilities.invokeLater(() -> {
+        JScrollBar vertical = ((JScrollPane)mensajesPanel.getParent().getParent()).getVerticalScrollBar();
+        vertical.setValue(vertical.getMaximum());
+    });
+}
+
     private void enviarMensaje(){
         
-        if(mensajeField.getText().trim().isEmpty()){}
+        if(mensajeField.getText().trim().isEmpty()) return;
 
         if(currentChatUser == null) return;
 
         try{
+            
+            String texto = mensajeField.getText();
 
             InboxManager im = new InboxManager();
 
@@ -183,6 +368,10 @@ mensajesPanel.add(empty,BorderLayout.CENTER);
             );
 
             im.sendMessage(i);
+            
+            if(client != null){
+    client.send(currentChatUser, texto);
+}
 
             mensajeField.setText("");
 
@@ -195,11 +384,11 @@ mensajesPanel.add(empty,BorderLayout.CENTER);
     
     private void escucharMensajes(){
 
+    if(client == null) return;
+
     new Thread(() -> {
 
         try{
-
-            ChatClient client = new ChatClient(currentUser.getUser());
 
             while(true){
 
@@ -214,8 +403,22 @@ mensajesPanel.add(empty,BorderLayout.CENTER);
 
                     if(emisor.equals(currentChatUser)){
 
-                        JLabel label = new JLabel(emisor + ": " + texto);
-                        mensajesPanel.add(label);
+                        JPanel fila = new JPanel(new BorderLayout());
+fila.setBorder(BorderFactory.createEmptyBorder(5,20,5,20));
+fila.setOpaque(false);
+
+JPanel bubble = new JPanel(new FlowLayout(FlowLayout.LEFT));
+bubble.setOpaque(false);
+
+JLabel label = new JLabel(texto);
+label.setBorder(BorderFactory.createEmptyBorder(8,12,8,12));
+label.setOpaque(true);
+label.setBackground(new Color(240,240,240));
+
+bubble.add(label);
+fila.add(bubble, BorderLayout.CENTER);
+
+mensajesPanel.add(fila);
 
                         mensajesPanel.revalidate();
                         mensajesPanel.repaint();

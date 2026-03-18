@@ -68,27 +68,32 @@ public class InboxManager {
         return mensajes;
     }
     
-    public int countUnreadMessages(String username) throws IOException{
-        int count =0;
-        
-        RandomAccessFile file = new RandomAccessFile (RAIZ + "/" + username + "/inbox.ins","r");
-        file.seek(0);
-        
-        while (file.getFilePointer() < file.length()){
-            String emisor = file.readUTF();
-            String receptor = file.readUTF();
-            long fecha = file.readLong();
-            String contenido = file.readUTF();
-            String tipo = file.readUTF();
-            boolean estado = file.readBoolean();
-            
-            if (receptor.equals(username) && !estado){
-                count++;
-            }
+    public int countUnreadMessages(String receptor,String emisor) throws IOException{
+
+    int count = 0;
+
+    RandomAccessFile file = new RandomAccessFile(
+            RAIZ + "/" + receptor + "/inbox.ins","r");
+
+    file.seek(0);
+
+    while(file.getFilePointer() < file.length()){
+
+        String em = file.readUTF();
+        String rec = file.readUTF();
+        long fecha = file.readLong();
+        String contenido = file.readUTF();
+        String tipo = file.readUTF();
+        boolean estado = file.readBoolean();
+
+        if(rec.equals(receptor) && em.equals(emisor) && !estado){
+            count++;
         }
-        file.close();
-        return count;
     }
+
+    file.close();
+    return count;
+}
     
     public void markAsRead(String user1, String user2) throws IOException{
         RandomAccessFile file = new RandomAccessFile(RAIZ + "/" + user1 + "/inbox.ins","rw");
@@ -145,4 +150,84 @@ public class InboxManager {
 
     return chats;
     }
+    
+    public void deleteConversation(String user1, String user2){
+
+    try{
+
+        RandomAccessFile file = new RandomAccessFile(RAIZ + "/" + user1 + "/inbox.ins","rw");
+
+        ArrayList<Inbox> mensajes = new ArrayList<>();
+
+        while(file.getFilePointer() < file.length()){
+
+            String emisor = file.readUTF();
+            String receptor = file.readUTF();
+            long fecha = file.readLong();
+            String contenido = file.readUTF();
+            String tipo = file.readUTF();
+            boolean estado = file.readBoolean();
+
+            Inbox m = new Inbox(emisor,receptor,fecha,contenido,tipo,estado);
+
+            boolean mismaConversacion =
+                    (emisor.equals(user1) && receptor.equals(user2)) ||
+                    (emisor.equals(user2) && receptor.equals(user1));
+
+            if(!mismaConversacion){
+                mensajes.add(m);
+            }
+        }
+
+        file.setLength(0);
+        file.seek(0);
+
+        for(Inbox m : mensajes){
+
+            file.writeUTF(m.getEmisor());
+            file.writeUTF(m.getReceptor());
+            file.writeLong(m.getFecha());
+            file.writeUTF(m.getContenido());
+            file.writeUTF(m.getTipo());
+            file.writeBoolean(m.isEstado());
+        }
+
+        file.close();
+
+    }catch(Exception e){
+        e.printStackTrace();
+    }
+}
+    
+    public long getLastMessageTime(String user, String otherUser) throws IOException{
+
+    long last = 0;
+
+    RandomAccessFile file = new RandomAccessFile(
+            RAIZ + "/" + user + "/inbox.ins","r");
+
+    file.seek(0);
+
+    while(file.getFilePointer() < file.length()){
+
+        String emisor = file.readUTF();
+        String receptor = file.readUTF();
+        long fecha = file.readLong();
+        String contenido = file.readUTF();
+        String tipo = file.readUTF();
+        boolean estado = file.readBoolean();
+
+        if(
+            (emisor.equals(user) && receptor.equals(otherUser)) ||
+            (emisor.equals(otherUser) && receptor.equals(user))
+        ){
+            if(fecha > last){
+                last = fecha;
+            }
+        }
+    }
+
+    file.close();
+    return last;
+}
 }

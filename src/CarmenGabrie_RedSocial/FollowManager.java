@@ -3,6 +3,7 @@ package CarmenGabrie_RedSocial;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
 
 
 public class FollowManager{
@@ -123,4 +124,40 @@ public class FollowManager{
     req.close();
     return false;
 }
+    
+    public java.util.List<String> getFollowing(String username) throws IOException{
+
+    java.util.List<String> lista = new java.util.ArrayList<>();
+
+    RandomAccessFile file = new RandomAccessFile(
+            "INSTA_RAIZ/" + username + "/following.ins","r");
+
+    while(file.getFilePointer() < file.length()){
+
+        String user = file.readUTF();
+        lista.add(user);
+
+    }
+
+    file.close();
+    return lista;
+}
+    
+    public ArrayList<String> getFollowRequests(String username) throws IOException{
+
+    ArrayList<String> requests = new ArrayList<>();
+
+    RandomAccessFile file = new RandomAccessFile(
+        "INSTA_RAIZ/" + username + "/follow_requests.ins",
+        "r"
+    );
+
+    while(file.getFilePointer() < file.length()){
+        requests.add(file.readUTF());
+    }
+
+    file.close();
+    return requests;
+}
+    
 }

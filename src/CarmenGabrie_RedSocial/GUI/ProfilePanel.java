@@ -6,6 +6,7 @@ import CarmenGabrie_RedSocial.Post;
 import CarmenGabrie_RedSocial.PostManager;
 import CarmenGabrie_RedSocial.Usuario;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Image;
@@ -14,10 +15,12 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.SwingUtilities;
 
 
 public class ProfilePanel extends JPanel {
@@ -67,9 +70,13 @@ public class ProfilePanel extends JPanel {
         JButton editBtn = new JButton ("Edit Profile");
         editBtn.setBounds(200,130,140,35);
         
-        editBtn.addActionListener(e-> {
-            
-        });
+        editBtn.addActionListener(e -> {
+
+    feedGUI feed = (feedGUI) SwingUtilities.getWindowAncestor(ProfilePanel.this);
+
+    feed.abrirSettings();
+
+});
         
         header.add(editBtn);
     }
@@ -130,9 +137,13 @@ public class ProfilePanel extends JPanel {
          JButton messageBtn = new JButton("Message");
          messageBtn.setBounds(330,130,120,35);
          
-         messageBtn.addActionListener(e->{
-             new MessagesPanel(currentUser);
-         });
+        messageBtn.addActionListener(e -> {
+
+    feedGUI feed = (feedGUI) SwingUtilities.getWindowAncestor(ProfilePanel.this);
+
+    feed.abrirChat(perfil.getUser());
+
+});
          
          header.add(messageBtn);
     }

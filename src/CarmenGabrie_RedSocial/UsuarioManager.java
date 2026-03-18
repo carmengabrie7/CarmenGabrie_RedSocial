@@ -154,9 +154,52 @@ public class UsuarioManager {
         }
     }
     
-     
+    public boolean cuentaDesactivada(String username, String password) throws IOException{
+    ruser.seek(0);
+
+    while(ruser.getFilePointer() < ruser.length()){
+        String name = ruser.readUTF();
+        char gender = ruser.readChar();
+        String user = ruser.readUTF();
+        String pass = ruser.readUTF();
+        long fecha = ruser.readLong();
+        int age = ruser.readInt();
+        boolean estado = ruser.readBoolean();
+        String foto = ruser.readUTF();
+        boolean privada = ruser.readBoolean();
+
+        if(user.equals(username) && pass.equals(password) && !estado){
+            return true;
+        }
+    }
+    return false;
+}
     
-    
-    
+public void reactivarCuenta(String username) throws IOException{
+
+    ruser.seek(0);
+
+    while(ruser.getFilePointer() < ruser.length()){
+
+        ruser.readUTF();
+        ruser.readChar();
+        String user = ruser.readUTF();
+        ruser.readUTF();
+        ruser.readLong();
+        ruser.readInt();
+
+        long pos = ruser.getFilePointer();
+        ruser.readBoolean();
+
+        ruser.readUTF();
+        ruser.readBoolean();
+
+        if(user.equals(username)){
+            ruser.seek(pos);
+            ruser.writeBoolean(true);
+            return;
+        }
+    }
+}
     
 }

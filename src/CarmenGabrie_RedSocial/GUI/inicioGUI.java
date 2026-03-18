@@ -82,23 +82,50 @@ public class inicioGUI extends JFrame {
     }
     
     private void hacerLogin(){
-        try {
-            String user = txtUser.getText();
-            String pass = new String(txtPass.getPassword());
-            
-            Usuario u = usuarioManager.login(user, pass);
-            
-            if (u != null){
-                JOptionPane.showMessageDialog(this, "Bienvenido " + u.getUser());
-                new feedGUI(u);
-                dispose();
-            }else{
-                JOptionPane.showMessageDialog(this, "Usuario o contraseña incorrectos");
-            }
-        } catch (IOException e){
-            e.printStackTrace();
+    try{
+
+        String user = txtUser.getText();
+        String pass = new String(txtPass.getPassword());
+
+        Usuario u = usuarioManager.login(user, pass);
+
+        if(u != null){
+
+            JOptionPane.showMessageDialog(this,"Bienvenido " + u.getUser());
+            new feedGUI(u);
+            dispose();
+            return;
         }
+
+        // si no login, revisar si esta desactivada
+        if(usuarioManager.cuentaDesactivada(user,pass)){
+
+            int option = JOptionPane.showConfirmDialog(
+                this,
+                "Tu cuenta está desactivada.\n¿Deseas reactivarla?",
+                "Cuenta desactivada",
+                JOptionPane.YES_NO_OPTION
+            );
+
+            if(option == JOptionPane.YES_OPTION){
+
+                // reactivar cuenta
+                usuarioManager.reactivarCuenta(user);
+
+                Usuario nuevo = usuarioManager.login(user,pass);
+
+                new feedGUI(nuevo);
+                dispose();
+                return;
+            }
+        }
+
+        JOptionPane.showMessageDialog(this,"Usuario o contraseña incorrectos");
+
+    }catch(Exception e){
+        e.printStackTrace();
     }
+}
     
     
 }

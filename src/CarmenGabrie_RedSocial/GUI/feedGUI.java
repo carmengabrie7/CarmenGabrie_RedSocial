@@ -1,8 +1,10 @@
 package CarmenGabrie_RedSocial.GUI;
 
 import CarmenGabrie_RedSocial.Usuario;
+import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
 import java.io.IOException;
@@ -22,6 +24,7 @@ public class feedGUI extends JFrame{
     private CardLayout cardLayout;
     private HomePanel homePanel;
     private ProfilePanel profilePanel;
+    private MessagesPanel messagesPanel;
     
     public feedGUI (Usuario usuario) throws IOException{
         this.usuario = usuario;
@@ -30,11 +33,11 @@ public class feedGUI extends JFrame{
         setSize (1366,768);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(null);
+        setResizable(false);
+        setLayout(new BorderLayout());
 
         JPanel lineaSidebar = new JPanel();
         lineaSidebar.setBackground(Color.LIGHT_GRAY);
-        lineaSidebar.setBounds(200,0,1,768);
         add(lineaSidebar);
         
         
@@ -49,8 +52,8 @@ public class feedGUI extends JFrame{
         JPanel sidebar = new JPanel();
         sidebar.setLayout(null);
         sidebar.setBackground(Color.white);
-        sidebar.setBounds(0,0,200,768);
-        add(sidebar);
+        sidebar.setPreferredSize(new Dimension(200,768));
+        add(sidebar, BorderLayout.WEST);
         
         ImageIcon logo = new ImageIcon("src/CarmenGabrie_RedSocial/imagenes/logoInsta.png");
         Image img = logo.getImage().getScaledInstance(35,35,Image.SCALE_SMOOTH);
@@ -146,8 +149,7 @@ public class feedGUI extends JFrame{
     private void crearFeed() throws IOException{
         cardLayout = new CardLayout();
         panelPrincipal = new JPanel(cardLayout);
-        panelPrincipal.setBounds(200, 0, 1166, 768);
-        add(panelPrincipal);
+        add(panelPrincipal, BorderLayout.CENTER);
         
         homePanel = new HomePanel(usuario);
         panelPrincipal.add(homePanel,"home");
@@ -155,11 +157,14 @@ public class feedGUI extends JFrame{
         profilePanel = new ProfilePanel(usuario,usuario);
         panelPrincipal.add(profilePanel,"profile");
         
-        panelPrincipal.add(new MessagesPanel(usuario),"messages");
+        messagesPanel = new MessagesPanel(usuario);
+        panelPrincipal.add(messagesPanel,"messages");
+        
         panelPrincipal.add(new SearchPanel(usuario,this),"search");
         
-        panelPrincipal.add(new JPanel(),"notifications");
-        panelPrincipal.add(new JPanel(),"settings");
+       panelPrincipal.add(new NotificationsPanel(usuario),"notifications");
+       
+        panelPrincipal.add(new SettingsPanel(usuario),"settings");
     }
     
     public void abrirPerfil(Usuario perfil){
@@ -206,4 +211,15 @@ public class feedGUI extends JFrame{
         
         return boton;
     }
+    
+    public void abrirChat(String username){
+
+    messagesPanel.abrirChat(username);
+
+    cardLayout.show(panelPrincipal, "messages");
+}
+    
+    public void abrirSettings(){
+    cardLayout.show(panelPrincipal, "settings");
+}
 }
